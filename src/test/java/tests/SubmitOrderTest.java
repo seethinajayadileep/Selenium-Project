@@ -1,6 +1,8 @@
 package tests;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +23,11 @@ public class SubmitOrderTest extends BaseTest {
 
 	@Test(dataProvider = "getData", groups = { "Purchase" })
 	public void submitOrder(Map<String, String> inputMap) throws IOException, InterruptedException {
+		
 
 		ProductCatalogue productCatalogue = landingPage.loginApplication(inputMap.get("email"),
 				inputMap.get("password"));
+	
 
 		List<WebElement> products = productCatalogue.getProductList();
 		productCatalogue.addProductToCart(inputMap.get("product"));
@@ -48,10 +52,13 @@ public class SubmitOrderTest extends BaseTest {
 
 	@DataProvider
 	public Object[][] getData() throws IOException {
-		List<HashMap<String, String>> data = getJsonDataToMap(
-				System.getProperty("user.dir") + "\\src\\test\\java\\rahulshettyacademy\\data\\PurchaseOrder.json");
 
-		return new Object[][] { { data.get(0) }, { data.get(1) } };
+	    Path path = Paths.get(System.getProperty("user.dir"),
+	            "src", "test", "java", "data", "PurchaseOrder.json");
+
+	    List<HashMap<String, String>> data = getJsonDataToMap(path.toString());
+
+	    return new Object[][] { { data.get(0) }, { data.get(1) } };
 	}
 
 	// alternative way

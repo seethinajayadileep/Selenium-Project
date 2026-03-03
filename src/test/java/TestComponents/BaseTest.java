@@ -3,7 +3,9 @@ package TestComponents;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import java.time.Duration;
@@ -35,13 +37,19 @@ public class BaseTest {
 
 	public WebDriver initializeDriver() throws IOException {
 
-		Properties properties = new Properties();
-		FileInputStream fileInputStream = new FileInputStream(System.getProperty("user.dir")
-				+ "\\src\\main\\java\\rahulshettyacademy\\resources\\GlobalData.properties");
-		properties.load(fileInputStream);
-		String mavenProp = System.getProperty("browser");
-		String browserName = mavenProp != null ? mavenProp : properties.getProperty("browser");
+		 Properties properties = new Properties();
 
+		    try (InputStream is = getClass().getClassLoader().getResourceAsStream("GlobalData.properties")) {
+		        if (is == null) {
+		            throw new FileNotFoundException("GlobalData.properties not found in src/main/resources");
+		        }
+		        properties.load(is);
+		    }
+
+		    String mavenProp = System.getProperty("browser"); // e.g. -Dbrowser=chromeheadless
+		    String browserName = (mavenProp != null && !mavenProp.isBlank())
+		            ? mavenProp
+		            : properties.getProperty("browser", "chrome");
 		if (browserName.contains("chrome")) {
 			ChromeOptions options = new ChromeOptions();
 			WebDriverManager.chromedriver().setup();
@@ -78,9 +86,12 @@ public class BaseTest {
 
 	@AfterMethod(alwaysRun = true)
 	public void tearDown() {
-		driver.close();
+	    try {
+	        if (driver != null) driver.quit();
+	    } finally {
+	        driver = null;
+	    }
 	}
-
 	public List<HashMap<String, String>> getJsonDataToMap(String filePath) throws IOException {
 
 		// read json to string
